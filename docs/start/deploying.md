@@ -6,42 +6,34 @@ new: true
 
 # Deploying
 
-React Router apps can be deployed anywhere through bundler configuration. By default running the build will output client and server bundles to the `build` directory.
+React Router apps can be deployed anywhere through bundler configuration.
 
-```shellscript nonumber
-npx react-router build
-ls build
-# client server
-```
+Many hosts automatically detect React Router apps and can deploy them without additional configuration. You can also control the output to accommodate any hosting provider, see the [Vite Plugin][vite_plugin] for more information.
 
-If you have `ssr: false` set in your bundler config, only the client bundle will be output.
+## Netlify SPA
 
-Many hosting providers automatically detect React Router apps and can deploy them without additional configuration, but you can also control the output to accommodate any hosting provider, see the [Vite Plugin][vite_plugin] for more information.
+[![Deploy SPA to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/ryanflorence/templates&create_from_path=netlify-spa)
 
 ## Generic Static Hosting
 
 First ensure your bundler plugin is configured without server rendering:
 
 ```tsx filename=vite.config.ts
-import { plugin as app } from "@react-router/vite";
+import react from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [
-    app({
-      ssr: false,
-    }),
-  ],
+  plugins: [react()],
 });
 ```
 
 Run the build:
 
 ```shellscript nonumber
-npx react-router build
+vite build
 ```
 
-And then deploy the build output directory at `build/client`.
+Now deploy the build output directory at `build/client`.
 
 For instance, with cloudflare pages it's a single command:
 
@@ -49,7 +41,7 @@ For instance, with cloudflare pages it's a single command:
 npx wrangler pages deploy build/client
 ```
 
-## Cloudflare with Wrangler
+## Cloudflare Pages Single Page App
 
 Configure vite:
 
@@ -100,24 +92,6 @@ Note when using SST the dev command changes
 
 ```shellscript nonumber
 sst dev react-router dev
-```
-
-## Netlify
-
-```tsx filename=vite.config.ts
-import { plugin as app } from "@react-router/vite";
-import { netlify } from "@react-router/netlify";
-import { defineConfig } from "vite";
-
-export default defineConfig({
-  plugins: [app({ preset: netlify() })],
-});
-```
-
-```shellscript nonumber
-npx react-router dev
-npx react-router build
-npx netlify deploy
 ```
 
 ## Vercel
