@@ -1,0 +1,54 @@
+name: 📔 Reference Docs
+
+on:
+  workflow_call:
+
+env:
+  CI: true
+  DOCS_REPO: "https://github.com/remix-run/react-router-docs-api.git"
+  DOCS_FILE: "public/api.json"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v3.0.0
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Disable GitHub Actions Annotations
+        run: |
+          echo "::remove-matcher owner=tsc::"
+          echo "::remove-matcher owner=eslint-compact::"
+          echo "::remove-matcher owner=eslint-stylish::"
+
+      - name: 📥 Install deps
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗 Build docs
+        run: pnpm run docs
+
+      - name: ⚙️ Configure git
+        run: |
+          git config --unset-all http.https://github.com/.extraheader
+          git remote add docs ${{ env.DOCS_REPO }}
+          git fetch docs
+
+      - name: ⬆️ Commit and push docs
+        run: |
+          cp ${{ env.DOCS_FILE }} ../api.json
+          git reset --hard HEAD
+          git checkout docs/main
+          git checkout -b temp_docs__${{ github.ref_name }}
+          mv ../api.json api.json
+          git add api.json
+          git commit -m "chore: update api.json"
+          git push -f -u docs HEAD:${{ github.ref_name }}
